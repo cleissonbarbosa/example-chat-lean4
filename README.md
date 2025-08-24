@@ -13,7 +13,6 @@ Core (backend):
 * Message length limit (2000 chars) with rejection feedback.
 * Keep‑alive (pings + missed pong tracking).
 * Structured logging (module `Chat`).
-* Configurable port (env `CHAT_PORT`).
 
 Frontend (static `frontend/`):
 * User list sidebar (auto updates on joins/leaves and `/who`).
@@ -33,6 +32,7 @@ Frontend (static `frontend/`):
 ```
 ExampleChatLean4/
   ChatServer.lean        -- chat server logic & event handler
+  ChatLog.lean           -- logging helpers (filtering + parsing)
 ExampleChatLean4.lean    -- library root
 frontend/
   index.html             -- static UI
@@ -54,6 +54,18 @@ This builds the project, starts the backend (default `CHAT_PORT=9101`) and serve
 Override ports:
 ```bash
 CHAT_PORT=9200 FRONTEND_PORT=5555 ./run.sh
+```
+Or CLI flag
+```bash
+./run.sh --port-backend=9200 --port-frontend=5555
+```
+Set minimum log level (default info):
+```bash
+CHAT_LOG_LEVEL=debug ./run.sh
+```
+Or CLI flag:
+```bash
+./run.sh --log-level=trace
 ```
 Skip auto browser open:
 ```bash
@@ -108,11 +120,12 @@ Adjust values and rebuild.
 * Nickname changes via UI send `/nick` automatically.
 * If you just open `frontend/index.html` (file://) most browsers allow the websocket to localhost; if not, use a small HTTP server.
 
-### Changing the Port at Runtime
-Backend port comes from env var `CHAT_PORT` (default 9101). Examples:
+### Changing Port & Log Level at Runtime
+Backend port comes from env var `CHAT_PORT` (default 9101). Log level comes from `CHAT_LOG_LEVEL` (default info). Examples:
 ```bash
-CHAT_PORT=9300 lake exe example-chat-lean4
-CHAT_PORT=9300 ./run.sh
+CHAT_PORT=9300 CHAT_LOG_LEVEL=warn lake exe example-chat-lean4
+CHAT_PORT=9300 CHAT_LOG_LEVEL=debug ./run.sh
+./run.sh --log-level=error
 ```
 
 ## 📌 Suggested Next Steps

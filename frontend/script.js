@@ -13,13 +13,15 @@
   const body = document.body;
 
   const storedTheme = localStorage.getItem("theme");
-  const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+  const prefersLight =
+    window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: light)").matches;
   const state = {
     ws: null,
     nick: null,
     users: new Set(),
     colorMap: new Map(),
-    theme: storedTheme || (prefersLight ? 'light' : 'dark'),
+    theme: storedTheme || (prefersLight ? "light" : "dark"),
   };
 
   if (state.theme === "light") {
@@ -28,8 +30,8 @@
     body.classList.remove("theme-dark");
     body.classList.add("theme-light");
   }
-  themeToggle.setAttribute('aria-label', 'Toggle theme');
-  themeToggle.textContent = state.theme === 'light' ? '🌙' : '🌗';
+  themeToggle.setAttribute("aria-label", "Toggle theme");
+  themeToggle.textContent = state.theme === "light" ? "🌙" : "🌗";
 
   function hashColor(str) {
     let h = 0;
@@ -213,15 +215,15 @@
   });
 
   themeToggle.addEventListener("click", () => {
-    const willBeLight = !(state.theme === 'light');
-    state.theme = willBeLight ? 'light' : 'dark';
-    app.classList.toggle('theme-light', willBeLight);
-    app.classList.toggle('theme-dark', !willBeLight);
-    body.classList.toggle('theme-light', willBeLight);
-    body.classList.toggle('theme-dark', !willBeLight);
-    localStorage.setItem('theme', state.theme);
-    themeToggle.textContent = state.theme === 'light' ? '🌙' : '🌗';
-    addLine(`* theme set to ${state.theme} *`, 'system');
+    const willBeLight = !(state.theme === "light");
+    state.theme = willBeLight ? "light" : "dark";
+    app.classList.toggle("theme-light", willBeLight);
+    app.classList.toggle("theme-dark", !willBeLight);
+    body.classList.toggle("theme-light", willBeLight);
+    body.classList.toggle("theme-dark", !willBeLight);
+    localStorage.setItem("theme", state.theme);
+    themeToggle.textContent = state.theme === "light" ? "🌙" : "🌗";
+    addLine(`* theme set to ${state.theme} *`, "system");
   });
 
   // Keyboard shortcuts
