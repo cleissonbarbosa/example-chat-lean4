@@ -1,0 +1,15 @@
+name = "example-chat-lean4"
+version = "0.1.0"
+defaultTargets = ["example-chat-lean4"]
+
+[[lean_lib]]
+name = "ExampleChatLean4"
+
+[[lean_exe]]
+name = "example-chat-lean4"
+root = "Main"
+
+[[require]]
+name = "websocket"
+git = "https://github.com/cleissonbarbosa/websocket.lean.git"
+rev = "v0.1.3"
