@@ -149,25 +149,26 @@ private def makeHandler (asyncRef : IO.Ref AsyncServerState) (stateRef : IO.Ref 
   | .error id err =>
     WebSocket.logMod .error "Chat" s!"Error {id}: {err}"
 
-/-- Chat server entrypoint. -/
-def main : IO Unit := do
-  let config : ServerConfig := {
-    port := 9101,
+/-! Low-level start function with configurable port and optional extra config modifier. -/
+def start (port : Nat) (modify? : ServerConfig → ServerConfig := id) : IO Unit := do
+  let baseCfg : ServerConfig := {
+    port := port,
     maxConnections := 200,
     pingInterval := 20,
     maxMissedPongs := 2,
     maxMessageSize := 512 * 1024,
     subprotocols := ["chat"]
   }
-  -- Estado base async
+  let config := modify? baseCfg
   let async0 ← mkAsyncServer config
   let startedBase ← WebSocket.Server.Accept.start async0.base
   let asyncStarted := { async0 with base := startedBase }
-  -- Nosso ChatState
   let asyncRef ← IO.mkRef asyncStarted
   let stateRef ← IO.mkRef ({ : ChatState })
   WebSocket.logMod .info "Chat" s!"Chat server started on port {config.port}. Commands: /nick /who /me"
-  -- Executa loop assíncrono infinito atualizando asyncRef e usando handler de chat.
   runAsyncServerUpdating asyncRef (makeHandler asyncRef stateRef)
+
+/-- Backwards-compatible entrypoint (default port 9101). -/
+def main : IO Unit := start 9101
 
 end Examples.Chat

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lean4 Chat</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="theme-dark">
+  <div id="app">
+    <header>
+      <div class="left">
+        <h1>Lean4 Chat</h1>
+        <div class="status" id="status">Disconnected</div>
+      </div>
+      <div class="right">
+        <div class="nick-edit">
+          <input id="nickInput" type="text" placeholder="nickname" maxlength="24" />
+          <button id="setNickBtn" title="Set nickname">Set</button>
+        </div>
+        <button id="themeToggle" class="secondary" title="Toggle theme">🌗</button>
+      </div>
+    </header>
+    <div class="body">
+      <aside id="usersPanel" aria-label="Users online">
+        <div class="panel-header">Users (<span id="userCount">0</span>)</div>
+        <ul id="users"></ul>
+      </aside>
+      <section class="chat">
+        <main id="log" aria-live="polite"></main>
+        <form id="inputForm" autocomplete="off">
+          <input id="input" type="text" placeholder="Type a message — /nick /who /me" maxlength="2000" />
+          <button type="submit">Send</button>
+        </form>
+      </section>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
