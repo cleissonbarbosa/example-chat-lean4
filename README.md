@@ -13,15 +13,16 @@ Core (backend):
 * Message length limit (2000 chars) with rejection feedback.
 * Keep‑alive (pings + missed pong tracking).
 * Structured logging (module `Chat`).
+* Structured JSON envelopes for outbound events.
+* Accepts either plain text commands or structured JSON frames from the client.
 
 Frontend (static `frontend/`):
-* User list sidebar (auto updates on joins/leaves and `/who`).
-* Nickname editor UI + persists during reconnection.
-* Light / dark theme toggle (+ auto detect system preference).
-* Colored nicknames (hash based) + you label.
-* Timestamps, subtle animations, alternating backgrounds (light mode).
-* Keyboard shortcuts (`/` focus input, `Esc` blur input).
-* Auto‑reconnect with state restoration.
+* Full WebSocket lab UI: timeline, transport summary, live metrics and raw frame inspector.
+* Structured JSON protocol visualization (`hello`, `presence`, `chat`, `action`, `users`, `telemetry`, `error`).
+* Connection controls for URL, subprotocol and nickname with auto‑reconnect + state restoration.
+* Outbound frame composer with chat, action, command, raw JSON and binary demo modes.
+* Command presets and capability panels to highlight how the Lean server routes frames.
+* Light / dark theme toggle, keyboard shortcuts and responsive layout.
 
 ## 🛠 Stack
 * Lean 4 (toolchain: `leanprover/lean4:v4.21.0`, see `lean-toolchain`).
@@ -101,6 +102,15 @@ Try some commands after connecting:
 Hello everyone!
 ```
 
+Or send structured JSON frames from the new frontend composer:
+
+```json
+{"kind":"chat","text":"Hello from JSON"}
+{"kind":"action","text":"proves a theorem"}
+{"kind":"nick","nickname":"Ada"}
+{"kind":"command","command":"/who"}
+```
+
 ## ⚙️ Server Configuration
 `ServerConfig` (in `ChatServer.lean`):
 ```lean
@@ -114,11 +124,12 @@ Hello everyone!
 Adjust values and rebuild.
 
 ### Frontend Details
-* Auto connects to `ws://<host>:9101` unless served same‑origin reverse proxy.
-* Light/dark theme saved to `localStorage`; first load respects system preference.
-* User list updated via parsing join/leave/system + `/who` output.
-* Nickname changes via UI send `/nick` automatically.
-* If you just open `frontend/index.html` (file://) most browsers allow the websocket to localhost; if not, use a small HTTP server.
+* Auto connects to `ws://<host>:9101` with the `chat` subprotocol by default.
+* The UI inspects raw inbound/outbound frames, server capabilities and aggregate counters in real time.
+* Outbound frames can be authored as structured chat/action/command JSON, raw JSON or binary payloads.
+* Nickname changes are persisted in `localStorage` and replayed after reconnect.
+* Light/dark theme is saved to `localStorage`; first load respects system preference.
+* If you open `frontend/index.html` via `file://`, browser websocket policies may vary; using `./run.sh` remains the safest path.
 
 ### Changing Port & Log Level at Runtime
 Backend port comes from env var `CHAT_PORT` (default 9101). Log level comes from `CHAT_LOG_LEVEL` (default info). Examples:

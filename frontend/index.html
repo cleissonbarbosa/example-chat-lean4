@@ -2,37 +2,203 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Lean4 Chat</title>
+  <title>Lean 4 WebSocket Lab</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#08111f" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body class="theme-dark">
-  <div id="app">
-    <header>
-      <div class="left">
-        <h1>Lean4 Chat</h1>
-        <div class="status" id="status">Disconnected</div>
-      </div>
-      <div class="right">
-        <div class="nick-edit">
-          <input id="nickInput" type="text" placeholder="nickname" maxlength="24" />
-          <button id="setNickBtn" title="Set nickname">Set</button>
+  <a class="skip-link" href="#mainContent">Skip to Main Content</a>
+  <div id="app" class="theme-dark">
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Lean 4 × websocket.lean</p>
+          <h1>Real-Time WebSocket Lab</h1>
+          <p class="hero-text">Observe structured frames, presence updates, reconnects, command routing and binary-frame handling from a Lean server in one live console.</p>
+          <ul class="hero-pills" id="featureList" aria-label="Server capabilities"></ul>
         </div>
-        <button id="themeToggle" class="secondary" title="Toggle theme">🌗</button>
-      </div>
-    </header>
-    <div class="body">
-      <aside id="usersPanel" aria-label="Users online">
-        <div class="panel-header">Users (<span id="userCount">0</span>)</div>
-        <ul id="users"></ul>
-      </aside>
-      <section class="chat">
-        <main id="log" aria-live="polite"></main>
-        <form id="inputForm" autocomplete="off">
-          <input id="input" type="text" placeholder="Type a message — /nick /who /me" maxlength="2000" />
-          <button type="submit">Send</button>
-        </form>
-      </section>
+        <div class="hero-card">
+          <div class="status-wrap">
+            <span class="status-badge" id="status">Disconnected</span>
+            <p class="status-detail" id="statusDetail" aria-live="polite">Waiting for a WebSocket session…</p>
+          </div>
+          <div class="hero-actions">
+            <button id="reconnectBtn" class="secondary" type="button">Reconnect</button>
+            <button id="disconnectBtn" class="secondary" type="button">Disconnect</button>
+            <button id="themeToggle" class="secondary" type="button" aria-label="Switch theme">Light Theme</button>
+          </div>
+          <dl class="transport-grid" aria-label="Transport summary">
+            <div>
+              <dt>Socket</dt>
+              <dd id="socketUrl">ws://localhost:9101</dd>
+            </div>
+            <div>
+              <dt>Subprotocol</dt>
+              <dd id="socketProtocol">chat</dd>
+            </div>
+            <div>
+              <dt>Connection ID</dt>
+              <dd id="connectionId">-</dd>
+            </div>
+            <div>
+              <dt>Last Sequence</dt>
+              <dd id="lastSequence">0</dd>
+            </div>
+          </dl>
+        </div>
+      </header>
+
+      <main id="mainContent" class="dashboard">
+        <aside class="rail rail-left">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Session</p>
+                <h2>Connection Controls</h2>
+              </div>
+            </div>
+            <form id="connectionForm" class="stack-form" autocomplete="off">
+              <label for="wsUrlInput">WebSocket URL</label>
+              <input id="wsUrlInput" name="ws-url" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="ws://localhost:9101…" />
+
+              <label for="subprotocolInput">Subprotocol</label>
+              <input id="subprotocolInput" name="subprotocol" type="text" autocomplete="off" spellcheck="false" placeholder="chat…" />
+
+              <label for="nickInput">Nickname</label>
+              <div class="split-field">
+                <input id="nickInput" name="nickname" type="text" maxlength="24" autocomplete="off" spellcheck="false" placeholder="Choose a nickname…" />
+                <button id="applyNickBtn" type="button">Apply Nick</button>
+              </div>
+
+              <button class="primary" type="submit">Open Session</button>
+              <p class="hint">Keep the default URL to connect to the local Lean demo, or point the UI at any compatible server.</p>
+            </form>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Live State</p>
+                <h2>Server Metrics</h2>
+              </div>
+            </div>
+            <div class="metric-grid" id="metricGrid"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Presence</p>
+                <h2>Users Online</h2>
+              </div>
+              <span class="panel-count" id="userCount">0</span>
+            </div>
+            <ul class="users-list" id="users"></ul>
+          </section>
+        </aside>
+
+        <section class="center-stage">
+          <section class="panel timeline-panel">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Event Stream</p>
+                <h2>Conversation Timeline</h2>
+              </div>
+              <button id="clearTimelineBtn" class="ghost" type="button">Clear Timeline</button>
+            </div>
+            <ol class="timeline" id="timeline" aria-live="polite"></ol>
+          </section>
+
+          <section class="panel composer-panel">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Outbound Frames</p>
+                <h2>Send Data to the Server</h2>
+              </div>
+            </div>
+
+            <div class="chip-row" id="presetButtons">
+              <button class="secondary" type="button" data-preset="who">Load /who</button>
+              <button class="secondary" type="button" data-preset="nick">Load /nick</button>
+              <button class="secondary" type="button" data-preset="action">Load /me</button>
+              <button class="secondary" type="button" data-preset="json">Load JSON</button>
+              <button class="secondary" type="button" data-preset="binary">Load Binary</button>
+            </div>
+
+            <form id="composerForm" class="stack-form" autocomplete="off">
+              <label for="composerMode">Payload Type</label>
+              <select id="composerMode" name="payload-type">
+                <option value="chat">Structured Chat Frame</option>
+                <option value="action">Structured Action Frame</option>
+                <option value="command">Structured Command Frame</option>
+                <option value="json">Raw JSON Frame</option>
+                <option value="binary">Binary Demo Frame</option>
+              </select>
+
+              <label for="composerInput">Payload</label>
+              <textarea id="composerInput" name="payload" rows="5" placeholder="Type a chat message or JSON frame…"></textarea>
+
+              <div class="form-meta">
+                <span id="composerHelp">Structured frames supported by the Lean server: chat, action, nick, who and command.</span>
+                <span id="composerCount">0 chars</span>
+              </div>
+
+              <div class="form-actions">
+                <button id="sendBtn" class="primary" type="submit">Send Frame</button>
+                <button id="sampleJsonBtn" class="secondary" type="button">Insert Sample JSON</button>
+                <button id="clearComposerBtn" class="ghost" type="button">Clear Payload</button>
+              </div>
+            </form>
+          </section>
+        </section>
+
+        <aside class="rail rail-right">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Protocol</p>
+                <h2>Server Capabilities</h2>
+              </div>
+            </div>
+            <dl class="detail-list">
+              <div>
+                <dt>Peer</dt>
+                <dd id="peerAddress">-</dd>
+              </div>
+              <div>
+                <dt>Ping Interval</dt>
+                <dd id="pingInterval">-</dd>
+              </div>
+              <div>
+                <dt>Missed Pongs</dt>
+                <dd id="missedPongs">-</dd>
+              </div>
+              <div>
+                <dt>Max Message Size</dt>
+                <dd id="maxMessageSize">-</dd>
+              </div>
+            </dl>
+
+            <h3>Commands</h3>
+            <ul class="command-list" id="commandList"></ul>
+          </section>
+
+          <section class="panel frames-panel">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Frames</p>
+                <h2>Raw Traffic Inspector</h2>
+              </div>
+              <button id="clearFramesBtn" class="ghost" type="button">Clear Frames</button>
+            </div>
+            <ol class="frame-list" id="frameList"></ol>
+          </section>
+        </aside>
+      </main>
     </div>
   </div>
   <script src="script.js"></script>
