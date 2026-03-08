@@ -308,18 +308,38 @@ dd {
     word-break: break-word;
 }
 
-.dashboard {
+.main-content {
     display: grid;
-    grid-template-columns: 320px minmax(0, 1fr) 360px;
-    gap: 20px;
-    align-items: start;
+    gap: 16px;
 }
 
-.rail,
-.center-stage {
-    min-width: 0;
+.dashboard-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.dashboard-note {
+    margin: 0;
+    color: var(--text-soft);
+    font-size: 0.92rem;
+}
+
+.dashboard {
     display: grid;
+    grid-template-columns: minmax(280px, 320px) minmax(420px, 1fr) minmax(300px, 360px);
     gap: 20px;
+    align-items: start;
+    grid-auto-flow: row dense;
+}
+
+.dashboard-block {
+    min-width: 0;
+}
+
+.dashboard-block-center {
+    grid-column: 2;
 }
 
 .panel {
@@ -329,6 +349,97 @@ dd {
 .panel-head {
     margin-bottom: 18px;
     align-items: start;
+    cursor: grab;
+}
+
+.panel-head button {
+    cursor: pointer;
+}
+
+.panel-tools {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+/* ── Drag-and-drop indicator line ── */
+.drop-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--accent, rgba(89, 209, 255, 0.8));
+    box-shadow: 0 0 10px rgba(89, 209, 255, 0.45);
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0;
+    transform: scaleX(0.3);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    will-change: transform, opacity;
+}
+
+.drop-indicator.visible {
+    opacity: 1;
+    transform: scaleX(1);
+}
+
+.drop-indicator::before,
+.drop-indicator::after {
+    content: "";
+    position: absolute;
+    top: -4px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent, rgba(89, 209, 255, 0.8));
+}
+
+.drop-indicator::before {
+    left: -6px;
+}
+
+.drop-indicator::after {
+    right: -6px;
+}
+
+/* ── Block drag transitions ── */
+.dashboard-block[draggable="true"] {
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.dashboard-block.is-dragging {
+    opacity: 0.35;
+    border-color: var(--accent, rgba(89, 209, 255, 0.3));
+    border-style: dashed;
+    box-shadow: none;
+}
+
+.dashboard.is-reordering .dashboard-block:not(.is-dragging) {
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.dashboard-block.is-dragging .panel-head,
+.panel-head:active {
+    cursor: grabbing;
+}
+
+.dashboard-block.drop-before,
+.dashboard-block.drop-after {
+    border-color: rgba(89, 209, 255, 0.32);
+    box-shadow: 0 0 0 1px rgba(89, 209, 255, 0.15);
+}
+
+.drag-ghost {
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+    pointer-events: none;
+}
+
+.dashboard-block.layout-flash {
+    animation: layout-flash 0.34s ease;
 }
 
 .panel-count {
@@ -662,12 +773,11 @@ pre {
 
 @media (max-width: 1240px) {
     .dashboard {
-        grid-template-columns: 280px minmax(0, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .rail-right {
-        grid-column: 1 / -1;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+    .dashboard-block-center {
+        grid-column: auto;
     }
 }
 
@@ -677,9 +787,12 @@ pre {
     }
 
     .hero,
-    .dashboard,
-    .rail-right {
+    .dashboard {
         grid-template-columns: 1fr;
+    }
+
+    .dashboard-block-center {
+        grid-column: auto;
     }
 
     .timeline,
@@ -708,14 +821,26 @@ pre {
     }
 
     .split-field,
+    .dashboard-toolbar,
     .hero-actions,
     .form-actions,
     .panel-head,
+    .panel-tools,
     .frame-head,
     .timeline-header,
     .form-meta {
         flex-direction: column;
         align-items: stretch;
+    }
+}
+
+@keyframes layout-flash {
+    0% {
+        box-shadow: 0 0 0 2px rgba(89, 209, 255, 0.5);
+    }
+
+    100% {
+        box-shadow: 0 0 0 2px transparent;
     }
 }
 

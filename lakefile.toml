@@ -12,4 +12,4 @@ root = "Main"
 [[require]]
 name = "websocket"
 git = "https://github.com/cleissonbarbosa/websocket.lean.git"
-rev = "v0.2.0"
+rev = "v0.2.1"

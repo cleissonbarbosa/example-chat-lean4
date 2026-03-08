@@ -52,9 +52,14 @@
         </div>
       </header>
 
-      <main id="mainContent" class="dashboard">
-        <aside class="rail rail-left">
-          <section class="panel">
+      <main id="mainContent" class="main-content">
+        <div class="dashboard-toolbar">
+          <p class="dashboard-note">Drag panels by their header. The layout is saved in this browser.</p>
+          <button id="resetLayoutBtn" class="ghost" type="button">Reset Layout</button>
+        </div>
+
+        <section class="dashboard" id="dashboard">
+          <section class="panel dashboard-block" data-block-id="connection">
             <div class="panel-head">
               <div>
                 <p class="panel-kicker">Session</p>
@@ -79,7 +84,50 @@
             </form>
           </section>
 
-          <section class="panel">
+          <section class="panel dashboard-block dashboard-block-center" data-block-id="timeline">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Event Stream</p>
+                <h2>Conversation Timeline</h2>
+              </div>
+              <div class="panel-tools">
+                <button id="clearTimelineBtn" class="ghost" type="button">Clear Timeline</button>
+              </div>
+            </div>
+            <ol class="timeline" id="timeline" aria-live="polite"></ol>
+          </section>
+
+          <section class="panel dashboard-block" data-block-id="protocol">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Protocol</p>
+                <h2>Server Capabilities</h2>
+              </div>
+            </div>
+            <dl class="detail-list">
+              <div>
+                <dt>Peer</dt>
+                <dd id="peerAddress">-</dd>
+              </div>
+              <div>
+                <dt>Ping Interval</dt>
+                <dd id="pingInterval">-</dd>
+              </div>
+              <div>
+                <dt>Missed Pongs</dt>
+                <dd id="missedPongs">-</dd>
+              </div>
+              <div>
+                <dt>Max Message Size</dt>
+                <dd id="maxMessageSize">-</dd>
+              </div>
+            </dl>
+
+            <h3>Commands</h3>
+            <ul class="command-list" id="commandList"></ul>
+          </section>
+
+          <section class="panel dashboard-block" data-block-id="metrics">
             <div class="panel-head">
               <div>
                 <p class="panel-kicker">Live State</p>
@@ -89,31 +137,7 @@
             <div class="metric-grid" id="metricGrid"></div>
           </section>
 
-          <section class="panel">
-            <div class="panel-head">
-              <div>
-                <p class="panel-kicker">Presence</p>
-                <h2>Users Online</h2>
-              </div>
-              <span class="panel-count" id="userCount">0</span>
-            </div>
-            <ul class="users-list" id="users"></ul>
-          </section>
-        </aside>
-
-        <section class="center-stage">
-          <section class="panel timeline-panel">
-            <div class="panel-head">
-              <div>
-                <p class="panel-kicker">Event Stream</p>
-                <h2>Conversation Timeline</h2>
-              </div>
-              <button id="clearTimelineBtn" class="ghost" type="button">Clear Timeline</button>
-            </div>
-            <ol class="timeline" id="timeline" aria-live="polite"></ol>
-          </section>
-
-          <section class="panel composer-panel">
+          <section class="panel dashboard-block dashboard-block-center composer-panel" data-block-id="composer">
             <div class="panel-head">
               <div>
                 <p class="panel-kicker">Outbound Frames</p>
@@ -154,53 +178,36 @@
               </div>
             </form>
           </section>
-        </section>
 
-        <aside class="rail rail-right">
-          <section class="panel">
-            <div class="panel-head">
-              <div>
-                <p class="panel-kicker">Protocol</p>
-                <h2>Server Capabilities</h2>
-              </div>
-            </div>
-            <dl class="detail-list">
-              <div>
-                <dt>Peer</dt>
-                <dd id="peerAddress">-</dd>
-              </div>
-              <div>
-                <dt>Ping Interval</dt>
-                <dd id="pingInterval">-</dd>
-              </div>
-              <div>
-                <dt>Missed Pongs</dt>
-                <dd id="missedPongs">-</dd>
-              </div>
-              <div>
-                <dt>Max Message Size</dt>
-                <dd id="maxMessageSize">-</dd>
-              </div>
-            </dl>
-
-            <h3>Commands</h3>
-            <ul class="command-list" id="commandList"></ul>
-          </section>
-
-          <section class="panel frames-panel">
+          <section class="panel dashboard-block" data-block-id="frames">
             <div class="panel-head">
               <div>
                 <p class="panel-kicker">Frames</p>
                 <h2>Raw Traffic Inspector</h2>
               </div>
-              <button id="clearFramesBtn" class="ghost" type="button">Clear Frames</button>
+              <div class="panel-tools">
+                <button id="clearFramesBtn" class="ghost" type="button">Clear Frames</button>
+              </div>
             </div>
             <ol class="frame-list" id="frameList"></ol>
           </section>
-        </aside>
+
+          <section class="panel dashboard-block" data-block-id="users">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Presence</p>
+                <h2>Users Online</h2>
+              </div>
+              <div class="panel-tools">
+                <span class="panel-count" id="userCount">0</span>
+              </div>
+            </div>
+            <ul class="users-list" id="users"></ul>
+          </section>
+        </section>
       </main>
     </div>
   </div>
-  <script src="script.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
