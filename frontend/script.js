@@ -89,10 +89,30 @@
   });
   const numberFormatter = new Intl.NumberFormat();
 
+  function isGitHubPagesHost() {
+    return /github\.io$/i.test(location.hostname);
+  }
+
+  function readPreferredWebSocketUrl() {
+    const params = new URLSearchParams(location.search);
+    return (
+      params.get("ws") ||
+      localStorage.getItem("preferred-ws-url") ||
+      ""
+    ).trim();
+  }
+
   function guessWebSocketUrl() {
+    const preferred = readPreferredWebSocketUrl();
+    if (preferred) return preferred;
+    if (isGitHubPagesHost()) return "";
     const protocol = location.protocol === "https:" ? "wss" : "ws";
     const host = location.hostname || "localhost";
     return `${protocol}://${host}:9101`;
+  }
+
+  function shouldAutoconnect() {
+    return !isGitHubPagesHost() || Boolean(readPreferredWebSocketUrl());
   }
 
   function hashColor(value) {
@@ -328,7 +348,7 @@
   }
 
   function renderTransport() {
-    socketUrlEl.textContent = state.transport.url || guessWebSocketUrl();
+    socketUrlEl.textContent = state.transport.url || guessWebSocketUrl() || "Set a backend URL";
     socketProtocolEl.textContent = state.transport.negotiatedProtocol || state.transport.configuredProtocol || "-";
     connectionIdEl.textContent = String(state.transport.connectionId);
     lastSequenceEl.textContent = String(state.transport.lastSequence || 0);
@@ -611,6 +631,20 @@
     const url = wsUrlInput.value.trim() || guessWebSocketUrl();
     const protocol = subprotocolInput.value.trim();
 
+    if (!url) {
+      setStatus("Awaiting URL", "idle", "Set the WebSocket backend URL before opening a session.");
+      pushTimeline({
+        tone: "system",
+        label: "CONFIGURATION",
+        body: "The GitHub Pages build serves only the frontend. Point the UI at a reachable WebSocket backend first.",
+        meta: [],
+      });
+      return;
+    }
+
+    localStorage.setItem("preferred-ws-url", url);
+    localStorage.setItem("preferred-subprotocol", protocol || "chat");
+
     if (state.ws && state.ws.readyState === WebSocket.OPEN) {
       state.ws.close(1000, "reconnect");
     }
@@ -818,7 +852,7 @@
   });
 
   wsUrlInput.value = guessWebSocketUrl();
-  subprotocolInput.value = "chat";
+  subprotocolInput.value = localStorage.getItem("preferred-subprotocol") || "chat";
   nickInput.value = state.nick;
 
   applyTheme(state.theme);
@@ -834,6 +868,17 @@
     meta: [],
   });
 
-  connect(true);
+  if (shouldAutoconnect()) {
+    connect(true);
+  } else {
+    setStatus("Awaiting URL", "idle", "GitHub Pages is ready. Set a WebSocket backend URL to start the demo.");
+    pushTimeline({
+      tone: "system",
+      label: "PAGES MODE",
+      body: "This hosted frontend is waiting for an explicit backend URL because GitHub Pages does not host the Lean WebSocket server.",
+      meta: [],
+    });
+  }
+
   window.setInterval(renderMetrics, 1000);
 })();

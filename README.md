@@ -129,7 +129,18 @@ Adjust values and rebuild.
 * Outbound frames can be authored as structured chat/action/command JSON, raw JSON or binary payloads.
 * Nickname changes are persisted in `localStorage` and replayed after reconnect.
 * Light/dark theme is saved to `localStorage`; first load respects system preference.
+* On GitHub Pages, the UI waits for an explicit backend URL unless you provide `?ws=wss://your-backend.example` or a previously saved endpoint.
 * If you open `frontend/index.html` via `file://`, browser websocket policies may vary; using `./run.sh` remains the safest path.
+
+### GitHub Pages Deployment
+The repository now includes a GitHub Actions workflow that publishes the `frontend/` directory to GitHub Pages on every push to `main` affecting the frontend.
+
+To enable it in the repository settings:
+1. Open Settings → Pages.
+2. Set Source to GitHub Actions.
+3. Push to `main` or run the workflow manually.
+
+When the site is live, open it and set the WebSocket backend URL in the "Connection Controls" panel, or append `?ws=wss://your-backend.example` to the Pages URL.
 
 ### Changing Port & Log Level at Runtime
 Backend port comes from env var `CHAT_PORT` (default 9101). Log level comes from `CHAT_LOG_LEVEL` (default info). Examples:
